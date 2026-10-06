@@ -1,0 +1,110 @@
+import bpy
+
+# seperate meshes by materials by han.jsp
+# ============================================================
+
+# before running, make sure you’re in object mode
+
+if bpy.context.object and bpy.context.object.mode != 'OBJECT':
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+# select active object
+source_obj = bpy.context.active_object
+
+# double check if selected
+if source_obj is None:
+    raise Exception("No object selected. Please select a mesh object.")
+
+if source_obj is None:
+    raise Exception("No object selected. Please select a mesh object.")
+
+# this stores original name
+original_name = source_obj.name
+
+# automatic deselect
+bpy.ops.object.select_all(action='DESELECT')
+
+# select object, ditto
+source_obj.select_set(True)
+bpy.context.view_layer.objects.active = source_obj
+
+# ------------------------------------------------------------
+# this seperates by material
+# ------------------------------------------------------------
+
+bpy.ops.object.mode_set(mode='EDIT')
+
+bpy.ops.mesh.select_all(action='SELECT')
+
+bpy.ops.mesh.separate(type='MATERIAL')
+
+bpy.ops.object.mode_set(mode='OBJECT')
+
+# ------------------------------------------------------------
+# this part renames the resulting objects purely for organization purposes. can delete if needed
+# ------------------------------------------------------------
+
+separated_objects = bpy.context.selected_objects
+
+for obj in separated_objects:
+
+    if obj.type != 'MESH':
+        continue
+
+    material = None
+
+    for slot in obj.material_slots:
+        if slot.material:
+            material = slot.material
+            break
+
+   
+    if material:
+        material_name = material.name
+
+       
+        material_name = material_name.replace("/", "_")
+        material_name = material_name.replace("\\", "_")
+        material_name = material_name.replace(":", "_")
+
+        new_name = f"{original_name}_{material_name}"
+
+    else:
+        new_name = f"{original_name}_NoMaterial"
+
+    # renames object
+    obj.name = new_name
+# ------------------------------------------------------------
+# this part renames the resulting objects purely for organization purposes. can delete if needed
+# ------------------------------------------------------------
+
+separated_objects = bpy.context.selected_objects
+
+for obj in separated_objects:
+
+    if obj.type != 'MESH':
+        continue
+
+    material = None
+
+    for slot in obj.material_slots:
+        if slot.material:
+            material = slot.material
+            break
+
+   
+    if material:
+        material_name = material.name
+
+       
+        material_name = material_name.replace("/", "_")
+        material_name = material_name.replace("\\", "_")
+        material_name = material_name.replace(":", "_")
+
+        new_name = f"{original_name}_{material_name}"
+
+    else:
+        new_name = f"{original_name}_NoMaterial"
+
+    # renames object
+    obj.name = new_name
