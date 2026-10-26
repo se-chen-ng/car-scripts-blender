@@ -1,0 +1,61 @@
+import bpy
+import re
+
+# script to get rid of annoying duplicate materials
+
+suffix_pattern = re.compile(r"\.\d{3}$")
+replacements = {}
+
+for mat in list(bpy.data.materials):
+    if not suffix_pattern.search(mat.name):
+        continue
+
+    original_name = suffix_pattern.sub("", mat.name)
+    original = bpy.data.materials.get(original_name)
+
+    if original is None:
+        continue
+
+    if mat.use_nodes != original.use_nodes:
+        continue
+
+    if mat.use_nodes and original.use_nodes:
+        if len(mat.node_tree.nodes) != len(original.node_tree.nodes):
+            continue
+
+        if len(mat.node_tree.links) != len(original.node_tree.links):
+            continue
+
+        identical = True
+
+        for node_a, node_b in zip(mat.node_tree.nodes, original.node_tree.nodes):
+            if node_a.bl_idname != node_b.bl_idname:
+                identical = False
+                break
+
+            if node_a.name != node_b.name:
+                identical = False
+                break
+
+            if node_a.label != node_b.label:
+                identical = False
+                break
+
+        if not identical:
+            continue
+
+    replacements[mat] = original
+
+for obj in bpy.data.objects:
+    if not hasattr(obj.data, "materials"):
+        continue
+
+    for i, mat in enumerate(obj.data.materials):
+        if mat in replacements:
+            obj.data.materials[i] = replacements[mat]
+
+for duplicate, original in replacements.items():
+    if duplicate.users == 0:
+        bpy.data.materials.remove(duplicate)
+
+print(f"Material cleanup complete! Replaced {len(replacements)} duplicate materials.")
